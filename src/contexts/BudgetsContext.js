@@ -14,37 +14,46 @@ export const BudgetsProvider = ({ children }) => {
 	const [budgets, setBudgets] = useLocalStorage("budgets", []);
 	const [expenses, setExpenses] = useLocalStorage("expenses", []);
 
-	const getBudgetExpenses = (budgetId) => {
-		return expenses.filter((exp) => exp.budgetId === budgetId);
-	};
-
-	const addExpense = ({ description, amount, budgetId }) => {
+	function getBudgetExpenses(budgetId) {
+		return expenses.filter((expense) => expense.budgetId === budgetId);
+	}
+	function addExpense({ description, amount, budgetId }) {
 		setExpenses((prevExpenses) => {
 			return [...prevExpenses, { id: uuidV4(), description, amount, budgetId }];
 		});
-	};
-
-	const addBudget = ({ name, max }) => {
+	}
+	function addBudget({ name, max }) {
 		setBudgets((prevBudgets) => {
 			if (prevBudgets.find((budget) => budget.name === name)) {
 				return prevBudgets;
 			}
-
 			return [...prevBudgets, { id: uuidV4(), name, max }];
 		});
-	};
-
-	const deleteBudget = ({ id }) => {
-		setBudgets((prevBudgets) => {
-			prevBudgets.filter((budget) => budget.id !== id);
-		});
-	};
-
-	const deleteExpense = ({ id }) => {
+	}
+	function deleteBudget({ id }) {
 		setExpenses((prevExpenses) => {
-			prevExpenses.filter((exp) => exp.id !== id);
+			return prevExpenses.map((exp) => {
+				if (exp.budgetId !== id) return exp;
+				return { ...exp, budgetId: UNCATEGORIZED_BUDGET_ID };
+			});
 		});
-	};
+
+		setExpenses((prevExpenses) => {
+			return prevExpenses.map((expense) => {
+				if (expense.budgetId !== id) return expense;
+				return { ...expense, budgetId: UNCATEGORIZED_BUDGET_ID };
+			});
+		});
+
+		setBudgets((prevBudgets) => {
+			return prevBudgets.filter((budget) => budget.id !== id);
+		});
+	}
+	function deleteExpense({ id }) {
+		setExpenses((prevExpenses) => {
+			return prevExpenses.filter((expense) => expense.id !== id);
+		});
+	}
 
 	return (
 		<BudgetsContext.Provider
